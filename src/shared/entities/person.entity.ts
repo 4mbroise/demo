@@ -6,8 +6,8 @@ export class Person {
   userID!: string;
 
   @Property()
-  lastName: string;
+  lastName!: string;
 
   @Property()
-  firstName: string;
+  firstName!: string;
 }

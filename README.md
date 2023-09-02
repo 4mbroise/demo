@@ -152,6 +152,34 @@ export class Book {
     ```
 <h3>Vérifiez que l'application démarre bien sinon vous avez mal fait quelque chose<h3>
 
+## Entités dans la base de données
+
+MikroORM utilise un système de migration pour administrer la base de données. Avec toutes les entités déclarées, MikroORM détermine quelles opérations doivent être effectuées sur la base de données pour qu'elle colle au modèle qu'on a spécifié.
+
+Il faut d'abord installer les dépendances requises :
+```properties
+npm install @mikro-orm/cli @mikro-orm/migrations
+```
+Et ajouter dans package.json ces lignes de configurations :
+```json
+ "mikro-orm": {
+    "useTsNode": true,
+    "configPaths": [
+      "./src/mikro-orm.config.ts",
+      "./dist/mikro-orm.config.js"
+    ]
+  }
+```
+
+
+1. Créer une nouvelle migration (comme le modèle a changé)
+    ```
+    npx mikro-orm migration:create
+    ```
+2. Migrer la base de donnée vers la dernière version de migration (Pour savoir où la base de donnée en est, MikroORM sauvegarde les données de migrations effectuées)
+    ```
+    npx mikro-orm migration:up 
+    ```
 ## Création d'un *Student* : Endpoint POST
 
 ### Dto : Data transfert object
@@ -200,4 +228,50 @@ On utilise [les décorateurs de la librairie class-validator](https://github.com
 
 Custom le CreateStudentDto pour que dans le body **soit présent** les 2 **string** *firstName* et *lastName*.
 
+### Service
+Maintenant qu'on sait qu'on a bien les données voulues dans le Dto, on peut s'en servir pour créer une nouvelle entité et l'enregister en base de données.
 
+
+
+On veut générer un identifiant unique pour le student de la forme *lastname***numero** (exemple : bidule1, bidule2, ect).
+Pour cela, on va lire dans la base de donnée si il existe déjà un étudiant avec cet identifiant, et si oui incrémenté le numero jusqu'à trouver un identifant valable.
+
+#### Comment intérroger la base de données ?
+Il faut utiliser un [EntityRepository](https://mikro-orm.io/docs/usage-with-nestjs#repositories) qu'on injecte dans le service. Un repository est un utilitaire une couche au dessus de l'EntityManager, il nous permettra de manipuler une entité bien précise.
+
+- L'EntityRepository expose différentes fonctions très utiles comme **findOrFail** ou bien **findAll**.
+  - **ATTENTION !** : Les requêtes à la base de données étant asynchrones, attention à bien gérer les fonctions asynchrones de MikroORM.
+  - **DOUBLE ATTENTION !!** : veiller à intercepter l'erreur levée par *findOrFail* quand elle ne trouve pas l'entité voulue. On fait un try/catch et on throw une [Exception que NestJS peut transformer en Erreur HTTP](https://docs.nestjs.com/exception-filters#built-in-http-exceptions) **NotFoundException**.
+
+ 
+- Pour créer une entité on se sert de son constructeur : `new ENTITY()`
+
+Créer une entité de suffit pas à la persister en base de donnée.
+
+#### Enregistrer une entité en base de donnée
+On se sert de l'EntityManager (de MikroORM) pour persister une nouvelle entité.
+
+Pour se servir de l'EntityManger dans le service, on commence par l'injecter dans le service.
+<details>
+
+```Typescript
+constructor(private em: EntityManager) {}
+```
+</details>
+
+Pour enregistrer une entité il faut utiliser la fonction **persistAndFlush** de l'entityManager : 
+```Typescript
+await entityManager.persistAndFlush(ENTITY);
+```
+
+### GET GET PATCH
+Oui c'est possible, avec toutes les informations ci-dessus ces endpoints sont réalisables.
+
+### DELETE
+Il faut utiliser la fonction **removerAndFlush** de l'EntityManager
+```Typescript
+await this.em.removeAndFlush(ENTITY);
+```
+
+# Et voilà
+Je crois qu'on est bon
