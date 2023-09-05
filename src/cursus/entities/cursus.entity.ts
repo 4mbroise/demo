@@ -1,6 +1,7 @@
 import { Collection, Entity, OneToMany, PrimaryKey } from '@mikro-orm/core';
 import { Student } from '../../students/entities/student.entity';
 import { CursusResponsible } from '../../cursus-responsibles/entities/cursus-responsible.entity';
+import { Ue } from '../../ue/entities/ue.entity';
 
 @Entity()
 export class Cursus {
@@ -15,4 +16,7 @@ export class Cursus {
     (cursusResponsible) => cursusResponsible.cursus,
   )
   cursusResponsibles = new Collection<CursusResponsible>(this);
+
+  @OneToMany(() => Ue, (ue) => ue.cursus)
+  ues = new Collection<Ue>(this);
 }

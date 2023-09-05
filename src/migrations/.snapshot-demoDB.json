@@ -169,6 +169,56 @@
           "updateRule": "cascade"
         }
       }
+    },
+    {
+      "columns": {
+        "ue_name": {
+          "name": "ue_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        },
+        "cursus_cursus_name": {
+          "name": "cursus_cursus_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        }
+      },
+      "name": "ue",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "ue_pkey",
+          "columnNames": [
+            "ue_name"
+          ],
+          "composite": false,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "ue_cursus_cursus_name_foreign": {
+          "constraintName": "ue_cursus_cursus_name_foreign",
+          "columnNames": [
+            "cursus_cursus_name"
+          ],
+          "localTableName": "public.ue",
+          "referencedColumnNames": [
+            "cursus_name"
+          ],
+          "referencedTableName": "public.cursus",
+          "updateRule": "cascade"
+        }
+      }
     }
   ]
 }

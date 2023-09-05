@@ -7,9 +7,9 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
-import { CursusService } from './cursus.service';
-import { CreateCursusDto } from './dto/create-cursus.dto';
-import { UpdateCursusDto } from './dto/update-cursus.dto';
+import { CursusService } from '../cursus.service';
+import { CreateCursusDto } from '../dto/create-cursus.dto';
+import { UpdateCursusDto } from '../dto/update-cursus.dto';
 
 @Controller('cursus')
 export class CursusController {

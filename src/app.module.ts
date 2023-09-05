@@ -8,6 +8,7 @@ import { CursusModule } from './cursus/cursus.module';
 import { APP_FILTER } from '@nestjs/core';
 import { UniqueConstraintViolationExceptionFilter } from './shared/exception-filters/unique-constraint-violation.exception-filter';
 import { NotFoundErrorExceptionFilter } from './shared/exception-filters/not-found.exception-filter';
+import { UeModule } from './ue/ue.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { NotFoundErrorExceptionFilter } from './shared/exception-filters/not-fou
     StudentsModule,
     CursusResponsiblesModule,
     CursusModule,
+    UeModule,
   ],
   controllers: [AppController],
   providers: [
