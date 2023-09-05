@@ -4,6 +4,129 @@ On veut ajouter les cursus à l'application
 ## CursusResponsible
 De le même manière que pour les Student, on ajoute la nouvelle entité **CursusResponsible** et son endpoint
 
+## Modification mais c'est de ma faute
+MikroORM throw des erreurs que NestJS ne sait pas prendre en charge (NotFound et PrimaryKey).
+Pour ne pas être obligé de faire des try/catch à chaque fois qu'on utilise des fonctions de MikroORM qui peuvent throw des erreurs, on va utiliser des [ExceptionsFilter](https://docs.nestjs.com/exception-filters) pour *transformer des erreurs non prises non compatibel en exception prise en charge par NestJS*
+
+Je ne vois pas l'intérêt de recoder ce que j'ai déjà fait pour gérer les exceptions de MikroORM.
+
+1.On créer les fichiers suivants :
+- *src/shared/exception-filters/not-found.exception-filter.ts*
+    ```Typescript
+    import { NotFoundError } from '@mikro-orm/core';
+    import {
+    ArgumentsHost,
+    Catch,
+    ExceptionFilter,
+    HttpStatus,
+    } from '@nestjs/common';
+    import { Response } from 'express';
+
+    @Catch(NotFoundError)
+    export class NotFoundErrorExceptionFilter implements ExceptionFilter {
+    catch(exception: NotFoundError, host: ArgumentsHost) {
+        const ctx = host.switchToHttp();
+        const response = ctx.getResponse<Response>();
+        const status = HttpStatus.NOT_FOUND;
+
+        const filter = exception.message.match(/{(.*?)}/)[0];
+        const ressource = exception.message.split(' ', 1)[0];
+
+        response.status(status).json({
+        statusCode: status,
+        message: ressource + ',identified by ' + filter + ', not found',
+        error: ressource + ' not found',
+        });
+    }
+    }
+    ```
+- *unique-constraint-violation.exception-filter.ts*
+    ```Typescript
+    import { UniqueConstraintViolationException } from '@mikro-orm/core';
+    import {
+    ArgumentsHost,
+    Catch,
+    ExceptionFilter,
+    HttpException,
+    HttpStatus,
+    } from '@nestjs/common';
+    import { Response } from 'express';
+
+    @Catch(UniqueConstraintViolationException)
+    export class UniqueConstraintViolationExceptionFilter
+    implements ExceptionFilter
+    {
+    regex = /("(.*?)"|'(.*?)')/gm;
+
+    catch(exception: HttpException, host: ArgumentsHost) {
+        const ctx = host.switchToHttp();
+        const response = ctx.getResponse<Response>();
+        const status = HttpStatus.CONFLICT;
+
+        const keysValues = this.extractDuplicatedKeyValue(exception);
+
+        const ressourceName = this.cleanParenthesisAndQuotes(
+        exception.message.match(/"(.*?)"/)[0],
+        );
+
+        response.status(status).json({
+        statusCode: status,
+        message:
+            'Duplicated key (' +
+            keysValues.keys +
+            ') with values (' +
+            keysValues.values +
+            ") for the ressource '" +
+            ressourceName +
+            "' ",
+        error: 'Conflict, duplicated key',
+        });
+    }
+
+    private cleanParenthesisAndQuotes(str: string) {
+        return str
+        .match(/("(.*?)"|'(.*?)')/gm)
+        .map((value) => value.replace(/"/g, "'").replace(/'/g, ''));
+    }
+
+    private extractDuplicatedKeyValue(
+        uniqueConstraintException: UniqueConstraintViolationException,
+    ): KeysValues {
+        if (uniqueConstraintException.message.includes('(')) {
+        const matches = uniqueConstraintException.message.match(/\((.*?)\)/gm);
+        const keys = this.cleanParenthesisAndQuotes(matches[0]);
+        const values = this.cleanParenthesisAndQuotes(matches[1]);
+        return { keys: keys, values: values } as KeysValues;
+        } else {
+        console.log(uniqueConstraintException.message);
+        const matches1 = uniqueConstraintException.message.match(/"(.*?)"/gm);
+        const matches2 = uniqueConstraintException.message.match(/'(.*?)'/gm);
+        const keys = this.cleanParenthesisAndQuotes(matches1[1]);
+        const values = this.cleanParenthesisAndQuotes(matches2[0]);
+        return { keys: keys, values: values } as KeysValues;
+        }
+    }
+    }
+
+    export type KeysValues = {
+    keys: [string];
+    values: [string];
+    };
+        
+    ```
+
+2. Préciser à NestJs qu'on utilise les filters exceptions ci-dessus dans l'AppModule:
+    ```TypeScript
+    ...
+    providers: [
+        ...,
+        { provide: APP_FILTER, useClass: UniqueConstraintViolationExceptionFilter },
+        { provide: APP_FILTER, useClass: NotFoundErrorExceptionFilter },
+        ...
+    ],
+    ...
+    ```
+3. Supprimer les try catch qu'on a ajouté (Dans les fonctions findOne des services)
 ## Cursus
 ### Description d'un Cursus
 - A pour clé primaire son nom
@@ -131,4 +254,19 @@ Pour peupler une collection, on utilise [la fonction add des Collections](https:
     1. On trouve une entité via son identifiant
     2. On l'ajoute à la Collection
 
-Lors des mises à jour, avant de peupler la collection, on vide la collection au préalable avec la fonction de Collection 
+Lors des mises à jour, avant de peupler la collection, on vide la collection au préalable avec la fonction de Collection.
+
+
+#### Populate
+Faites un test :
+1. Créer un des élèves et des responsables
+2. Créer un cursus : observer la réponse de l'API
+3. GET ou bien modifier le cursus créé : comparer la réponse de l'API avec celle de la création ??
+
+<details>
+MikroORM ne charge pas par défaut les entités liées, c'est pourquoi elles n'aparaissent.
+
+Pour y remédier, dans les différentes fonctions find/findAll/..., on ajoute le paramètre **{populate: true}** qui indique à MikroORM de peupler toutes les entités liées.
+
+
+</details>

@@ -22,9 +22,12 @@ export class CursusResponsiblesService {
     let numero = 1;
 
     while (
-      (await this.cursusResponsibleRepository.findOne({
-        userID: cursusResponsible.lastName + numero,
-      })) !== null
+      (await this.cursusResponsibleRepository.findOne(
+        {
+          userID: cursusResponsible.lastName + numero,
+        },
+        { populate: true },
+      )) !== null
     ) {
       numero++;
     }
@@ -37,19 +40,16 @@ export class CursusResponsiblesService {
   }
 
   async findAll() {
-    return this.cursusResponsibleRepository.findAll();
+    return this.cursusResponsibleRepository.findAll({ populate: true });
   }
 
   async findOne(id: string) {
-    try {
-      return await this.cursusResponsibleRepository.findOneOrFail({
+    return await this.cursusResponsibleRepository.findOneOrFail(
+      {
         userID: id,
-      });
-    } catch (error) {
-      throw new NotFoundException(
-        "The Cursus Responsible '" + id + "' not found",
-      );
-    }
+      },
+      { populate: true },
+    );
   }
 
   async update(

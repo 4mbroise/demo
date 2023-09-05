@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
@@ -22,9 +22,12 @@ export class StudentsService {
     let numero = 1;
 
     while (
-      (await this.studentRepository.findOne({
-        userID: student.lastName + numero,
-      })) !== null
+      (await this.studentRepository.findOne(
+        {
+          userID: student.lastName + numero,
+        },
+        { populate: true },
+      )) !== null
     ) {
       numero++;
     }
@@ -37,15 +40,14 @@ export class StudentsService {
   }
 
   async findAll() {
-    return await this.studentRepository.findAll();
+    return await this.studentRepository.findAll({ populate: true });
   }
 
   async findOne(id: string) {
-    try {
-      return await this.studentRepository.findOneOrFail({ userID: id });
-    } catch (error) {
-      throw new NotFoundException("Student '" + id + "' not found");
-    }
+    return await this.studentRepository.findOneOrFail(
+      { userID: id },
+      { populate: true },
+    );
   }
 
   async update(id: string, updateStudentDto: UpdateStudentDto) {
