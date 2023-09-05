@@ -1,11 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCursusDto } from './dto/create-cursus.dto';
 import { UpdateCursusDto } from './dto/update-cursus.dto';
+import { Cursus } from './entities/cursus.entity';
+import { EntityManager, EntityRepository } from '@mikro-orm/core';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { StudentsService } from '../students/students.service';
 
 @Injectable()
 export class CursusService {
+  constructor(
+    private em: EntityManager,
+    @InjectRepository(Cursus)
+    private readonly cursusRepository: EntityRepository<Cursus>,
+    private readonly studentsService: StudentsService,
+  ) {}
+
   create(createCursusDto: CreateCursusDto) {
-    return 'This action adds a new cursus';
+    const cursus = new Cursus();
+    cursus.cursusName = createCursusDto.cursusName;
+
+    // Populate students
+    createCursusDto.students.forEach(async (studentID) => {
+      cursus.students.add(await this.studentsService.findOne(studentID));
+    });
   }
 
   findAll() {
