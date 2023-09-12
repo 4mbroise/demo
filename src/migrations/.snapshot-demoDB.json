@@ -197,9 +197,10 @@
         {
           "keyName": "ue_pkey",
           "columnNames": [
-            "ue_name"
+            "ue_name",
+            "cursus_cursus_name"
           ],
-          "composite": false,
+          "composite": true,
           "primary": true,
           "unique": true
         }
@@ -216,6 +217,112 @@
             "cursus_name"
           ],
           "referencedTableName": "public.cursus",
+          "updateRule": "cascade"
+        }
+      }
+    },
+    {
+      "columns": {
+        "cursus_cursus_name": {
+          "name": "cursus_cursus_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        },
+        "ue_ue_name": {
+          "name": "ue_ue_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        },
+        "ue_cursus_cursus_name": {
+          "name": "ue_cursus_cursus_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        },
+        "student_user_id": {
+          "name": "student_user_id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        },
+        "mark": {
+          "name": "mark",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "integer"
+        }
+      },
+      "name": "exam",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "exam_pkey",
+          "columnNames": [
+            "cursus_cursus_name",
+            "ue_ue_name",
+            "ue_cursus_cursus_name",
+            "student_user_id"
+          ],
+          "composite": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "exam_cursus_cursus_name_foreign": {
+          "constraintName": "exam_cursus_cursus_name_foreign",
+          "columnNames": [
+            "cursus_cursus_name"
+          ],
+          "localTableName": "public.exam",
+          "referencedColumnNames": [
+            "cursus_name"
+          ],
+          "referencedTableName": "public.cursus",
+          "updateRule": "cascade"
+        },
+        "exam_ue_ue_name_ue_cursus_cursus_name_foreign": {
+          "constraintName": "exam_ue_ue_name_ue_cursus_cursus_name_foreign",
+          "columnNames": [
+            "ue_ue_name",
+            "ue_cursus_cursus_name"
+          ],
+          "localTableName": "public.exam",
+          "referencedColumnNames": [
+            "ue_name",
+            "cursus_cursus_name"
+          ],
+          "referencedTableName": "public.ue",
+          "updateRule": "cascade"
+        },
+        "exam_student_user_id_foreign": {
+          "constraintName": "exam_student_user_id_foreign",
+          "columnNames": [
+            "student_user_id"
+          ],
+          "localTableName": "public.exam",
+          "referencedColumnNames": [
+            "user_id"
+          ],
+          "referencedTableName": "public.student",
           "updateRule": "cascade"
         }
       }

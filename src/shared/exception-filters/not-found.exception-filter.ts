@@ -14,6 +14,8 @@ export class NotFoundErrorExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const status = HttpStatus.NOT_FOUND;
 
+    console.log(exception.message);
+
     const filter = exception.message.match(/{(.*?)}/)[0];
     const ressource = exception.message.split(' ', 1)[0];
 

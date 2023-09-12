@@ -8,15 +8,47 @@ export class Cursus {
   @PrimaryKey()
   cursusName: string;
 
-  @OneToMany(() => Student, (student) => student.cursus)
+  @OneToMany(() => Student, (student) => student.cursus, {
+    serializer(value: Collection<Student>) {
+      const students = value.getItems();
+      return students.map(
+        (student) =>
+          student.lastName.toUpperCase() +
+          ' ' +
+          student.firstName +
+          ' (' +
+          student.userID +
+          ')',
+      );
+    },
+  })
   students = new Collection<Student>(this);
 
   @OneToMany(
     () => CursusResponsible,
     (cursusResponsible) => cursusResponsible.cursus,
+    {
+      serializer(value: Collection<CursusResponsible>) {
+        const cursusResponsibles = value.getItems();
+        return cursusResponsibles.map(
+          (cursusResponsible) =>
+            cursusResponsible.lastName.toUpperCase() +
+            ' ' +
+            cursusResponsible.firstName +
+            ' (' +
+            cursusResponsible.userID +
+            ')',
+        );
+      },
+    },
   )
   cursusResponsibles = new Collection<CursusResponsible>(this);
 
-  @OneToMany(() => Ue, (ue) => ue.cursus)
+  @OneToMany(() => Ue, (ue) => ue.cursus, {
+    serializer(value: Collection<Ue>) {
+      const ues = value.getItems();
+      return ues.map((ue) => ue.ueName);
+    },
+  })
   ues = new Collection<Ue>(this);
 }
