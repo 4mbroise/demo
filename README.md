@@ -1,277 +1,258 @@
-# Apprentissage par la pratique
-On va réaliser une API pour permettant de gérer les notes de promotions d'étudiants
+# Etape suivante, Imbrication : routing plus complexe et clé primaire composite
+On veut ajouter à l'application la notion d'UE qui sont propre à un Cursus (Owner).
 
-![alt text](img/app-demo.drawio.png)
+![](img/3.png)
 
-- Les différents cursus ont des responsables et des étudiants
-- Les Cursus ont des examens
-- Les examens ont une UE et un étudiant
+## Ajouter l'entité
+La méthode ne change pas grandement par rapport à ce qu'on a déjà fait. La seule différence réside dans la gestion de **clé primaire de UE** qui est **composée du Cursus** auquel il appartient **et de son nom**.
 
+**HEUREUSEMENT** [MikroORM documente](https://mikro-orm.io/docs/composite-keys#use-case-1-dynamic-attributes) bien la gestion des clé primaire composite et des clé étrangère comme clé primaire.
+
+#### Dans un premier temps
+Ajouter la nouvelle entité comme on sait le faire (càd le fichier .entity.ts. On ne touche pas au service et on peut d'ores et déjà supprimer  fichier du controller).
+
+On s'occupe du problème de a la clé primaire composite juste ensuite.
+
+#### Temps n°2 : Clé primaire composite, on y vient
+On se réfère à la [documentation de MikroORM](https://mikro-orm.io/docs/composite-keys#use-case-1-dynamic-attributes)
+
+1. Dans le champs cursus de l'entité UE qu'on a ajouté pour modéliser la relation entre UE et Cursus, on ajoute le paramètre suivant **{primary: true}** pour obtenir
+    ```Typescript
+    @ManyToOne()
+    cursus: Cursus;
+    ```
+
+2. On ajoute la ligne suivant
+    ```Typescript
+    [PrimaryKeyType]?: [string, string];
+    ```
+
+    - La partie *[PrimaryKeyType]?* est nécessaire c'est MikroORM qui impose ça
+    - La partie de droite, le tableau c'est le type de la clé primaires (clé primaire de cursus => string + la demie clé primaire de UE => string )
+
+## Ajouter un controller
+Pour rappelle on veut imbriquer l'endpoint des UEs dans celui des Cursus
+| Route                                          | POST | GET | PATCH | DELETE | Accès         |
+|------------------------------------------------|------|-----|-------|--------|---------------|
+| /cursus/:cursusName/ue                         | ✓    | ✓   |       |        | Responsible   |
+| /cursus/:cursusName/ue/:ueName                 |      | ✓   |✓      |✓       | Responsible   |
+
+On va donc ajouter un nouveau controller dans le module Cursus : 
+1. Supprimer le controller de la resource ue qu'on vient de créer (Supprimer le fichier, et  supprimer toute notion dans le Ue Module)
+2. Créer le fichier */src/cursus/controllers/ue.controller.ts*
+3. Inscire ce nouveau controller dans le Cursus Module
+    <details>
+
+    ```Typescript
+    @Module({
+    ...,
+    controllers: [CursusController, UeController],
+    ...
+    })
+    export class CursusModule {}
+    ```
+    </details>
+4. Déplacer le fichier */src/cursus/cursus.controller.ts* dans le dossier */src/cursus/controllers/*
+5. On déclare dans le fichier */src/cursus/controllers/ue.controller.ts* un nouveau controller dont le chemin est *cursus/:cursusName/ue*, on aura alors 
+    <details>
+    On devrait obtenir la classe suivante :
+
+    ```Typescript
+    @Controller('cursus/:cursusName/ue')
+    export class UeController {
+        ...
+    }
+    ```
+    </details>
+4. Enfin, on complète le controller avec les endpoints du CRUD (findall, find, create, update) (fonctions avec les décorateur HTTP @GET, @POST, @PATCH, @ÐELETE)
+    - A l'intérieur des controller on utilisera le service et les DTOs de l'entité imbriquée (ici, UeService, CreateUeDto et UpdateUeDto)
+    - **Attention** On a inséré un paramètre sur le chemin du controller, donc il faut bien veiller à le récupérer en paramètre des différents endpoints !!!
+
+## Modifier le service, adapter le service
+1. On utilise des clé primaires composite, donc dans les fonctions qui en ont besoin, il faut lui ajouter la (les) clé manquante.
+    <details>
+    Il faut le faire dans toutes les fonctions en fait ;)
+
+    Par exemple :
+    ```Typescript
+    // Fonctions du service
+    async findOne(cursusName: string, ueName: string) { ... }
+    async update(cursusName: string, ueName: string, updateUeDto: UpdateUeDto) { ... }
+    async remove(cursusName: string, ueName: string) { ... }
+
+    //Dans l'utilisation du repository
+    await this.ueRepository.findOneOrFail({
+      ueName: ueName,
+      cursus: cursus,
+    });
+
+    ```
+    </details>
+
+
+# A vous
+On a fait le tour des clé composites. Maintenant c'est  à vous de jouer, on va ajouter l'entité **Exam**
+![](img/triple.png)
+On surrencherit : on aura non pas 2 mais **3** clés étrangère comme clé primaire
+
+On attribue un **Exam** (une note) à un **Student** pour une **UE** de son **Cursus**
+
+On aurait les endpoints suivants :
 
 | Route                                          | POST | GET | PATCH | DELETE | Accès         |
 |------------------------------------------------|------|-----|-------|--------|---------------|
-| /students                                      | ✓    | ✓   |       |        | Admin         |
-| /students/:userID                              |      | ✓   |       |        | Student/Admin |
-| /students/:userID/exams                        |      | ✓   |       |        | Students      |
-| /students/:userID/exams/:ueName                |      | ✓   |       |        | Students      |
-| /responsibles                                  | ✓    | ✓   |       |        | Admin         |
-| /responsibles/:userID                          |      | ✓   |✓      |✓       | Admin         |
-| /cursus                                        | ✓    | ✓   |       |        | Responsible   |
-| /cursus/:cursusName/ue                         | ✓    | ✓   |       |        | Responsible   |
-| /cursus/:cursusName/ue/:ueName                 |      | ✓   |✓      |✓       | Responsible   |
 | /cursus/:cursusName/ue/:ueName/exams           | ✓    | ✓   |       |        | Responsible   |
-| /cursus/:cursusName/ue/:ueName/exams/:userID   |      | ✓   |✓      |✓       | Responsible   |
+| /cursus/:cursusName/ue/:ueName/exams/:idStudent|      | ✓   |✓      |✓       | Responsible   |
 
-# ORM
-Object-relational mapping, librairie pour pour faire le lien entre des objets et une base de donnée.
+## Remarques
+- Le createDto doit contenir :
+    - mark, un nombre compris entre 0 et 20
+    - studentId, une chaine de caractère
+- On ne veut que pouvoir modifier la note lors de l'update d'un Exam
 
-On utilise un ORM pour communiquer avec une base de donnée PostgreSQL.
+**A vous de jouer maintenant !**
 
+# Des nouveaux trucs !
 
+## Serialization
+Pour le moment, les réponses de l'API sont un peu longue, ceci est dû aux différents *populate = true* nécessaire pour ne pas avoir à gérer des problèmes de chargemet d'entités surtout quand on commence à toucher aux relations.
 
-On utilise l'ORM MirkoORM (https://mikro-orm.io/)
+Pour y remédier, on va transformer la façon dont les entités sont "affichée"/mis en série/serialize. Pour ce faire, on utilise le [serializer de MikroORM](https://mikro-orm.io/docs/serializing#property-serializers).
 
-## Installation dans NestJS
+Les serializer s'utilisent aux niveau des entités, en paramètres des décorateur @PrimaryKey, @Property ou décorateur de relation.
 
-1. Créer le fichier ```docker-compose.yaml``` à la racine du projet :
-```yaml
-services:
-  db:
-    image: postgres:alpine
-    environment:
-      POSTGRES_PASSWORD: example
-      POSTGRES_DB: nodeUsmApi
-    ports:
-      - "5432:5432"
-```
-2. Démarrer le container : ```docker compose up```
-
-### Base donnée
-
-### Importer la librairie
-```properties
-npm i @mikro-orm/core @mikro-orm/nestjs @mikro-orm/postgresql @mikro-orm/reflection
-```
-
-### Ajouter le fichier de configuration de MikroORM
-Créer le fichier de configuration `mikro-orm.config.ts` à la racine du code source (dans le dossier /src)
-
+un serializer se présente et s'utilise sous la forme suivante
 ```Typescript
-import * as path from 'path';
-import { defineConfig } from '@mikro-orm/postgresql';
-import { TsMorphMetadataProvider } from '@mikro-orm/reflection';
-
-export default defineConfig({
-  host: 'localhost',
-  port: 5432,
-  user: 'postgres',
-  password: 'password',
-  dbName: 'demoDB',
-  entities: ['dist/**/*.entity.js'],
-  entitiesTs: ['src/**/*.entity.ts'],
-  metadataProvider: TsMorphMetadataProvider,
-  migrations: {
-    path: path.join(__dirname, './migrations'),
-    glob: '!(*.d).{js,ts}',
-  },
-  validate: true,
-  debug: false,
-});
+@Decorateur({ ..., serializer: value => value.name, ... })
+machinChouette: valueType;
 ```
 
-###
-
-
-### Configurer la librairie dans l'AppModule
-Dans le fichier de configuration de l'AppModule : 
+Ou
 ```Typescript
-@Module({
-  imports: [
-    MikroOrmModule.forRoot(), // MikroORM trouvera le fichier de configuration 
-  ],
-  ...
-})
-export class AppModule {}
+@Decorateur({ ..., 
+    serializer(value: valueType) {
+      return value.name;
+    }, 
+    ... })
+machinChouette: valueType;
+```
+Ou encore
+```Typescript
+@ManyToOne({
+    ...,
+    serializer: (value: valueType) => value.name,
+    ...
+  })
+machinChouette: valueType;
 ```
 
-# Première Entité
-On va d'abord se concentrer sur l'entité Student
-
-![](img/user.drawio.png)
 
 
-## *Person* : Entité Abstraite 
+La fonction serializer doit retourner ce que l'API doit afficher.oit une valeur primitive (type string, number, boolean, ...), soit un objet.
 
-C'est une entité utilitaire qu'on va utiliser pour faire un peu moins de duplication de code
+**Attention** à bien prendre en compte le cas où la valeur peut être nulle.
 
-1. Créer le dossier /src/shared/entities
-2. Créer le fichier /src/shared/entities/person.entity.ts
+## A vous !
+Pour les champs représentant une relation, modifier l'affichage de l'entité liée.
 
-Dans ce fichier on veut décrire l'entité abstraite Person.
+**Attention** à traiter les collections correctement ;)
 
-Pour [déclarer une entité MikroORM](https://mikro-orm.io/docs/defining-entities), on déclare une classe décorrée par **@Entity()**. Ici, on veut déclarer une entité particulière, on lui ajoute le paramètre suivant pour obtenir le décorateur @Entity(**{ abstract: true }**) (https://mikro-orm.io/docs/defining-entities#using-custom-base-entity).
+Serializers à ajouter :
+- Cursus
+    - Collection student
+    - Collection responsable
+- Ue
+    - Collection Exam
+    - Cursus
+- CursusResponsible
+    - Cursus
+- Exam
+    - Cursus
+    - Ue
+    - Student
+- Student
+    -Cursus
 
-Dans les champs de classe, on définit les différentes propritétés des tables (userID, lastNamen firstName) qu'on décort soit par **@PrimaryKey()** quand il s'agit d'une clé primaire, soit par **@Propetry()**.
+C'est quand bien plus propre n'est-ce pas !
 
-Pour préciser qu'un champs ne peut pas être null, on lui ajoute un point d'exlacamtion à la fin de son nom.
+## Propriétés vituelles
+On utilise les propriétés virtuelle pour exposer une donnée calculée en fonction des données de l'entité à laquelle on ajout cette propriété virtuelle. Un exemple serait peut-être plus parlant
 
-De la même manière, si on veut préciser qu'un champs peut être null, on lui ajoute un point d'interrogation.
+Soit l'entité suivante
 
-
-Exemple :
 ```Typescript
 @Entity()
-export class Book {
-
-  @PrimaryKey()
-  id!: string;
+export class User {
+  @Property()
+  firstName!: string;
 
   @Property()
-  author!: string;
-
-  @Property()
-  publisher?: string;
+  lastName!: string;
 }
 ```
-<h3>A vous de jouer : Créez l'entité abstraite **Person**  <h3>
 
-## *Student* : une vraie Entité
-1. On veut l'API gère l'entité Student, donc on dit à NestJS de nous créer les fichiers pour coder cette ressource :
-    ```properties
-    nest generate resource students
-    ```
-    ou
-    ```properties
-    nest g res students
-    ```
+On veut créer exposé la nouvelle donnée *"fullName"*, la concaténation du nom et du prénom qui sont enregistré dans la base de données sans pour autant enregistrer le contenue de *fullName* en base de donnée. Alors, on ajoute un getter (Une fonction avec *get* devant) qui retourne la donnée souhaitée. On décore cette fonction avec @Property auquel on passe en paramètre "{persit: true}"
 
-2. Déclarer la nouvelle entité
-    ```Typescript
-    @Entity()
-    export class Student extends Person {}
-    ```
-<h3>Vérifiez que l'application démarre bien sinon vous avez mal fait quelque chose<h3>
+On obtiendrait alors
+```Typescript
+@Entity()
+export class User {
+  @Property()
+  firstName!: string;
 
-## Entités dans la base de données
+  @Property()
+  lastName!: string;
 
-MikroORM utilise un système de migration pour administrer la base de données. Avec toutes les entités déclarées, MikroORM détermine quelles opérations doivent être effectuées sur la base de données pour qu'elle colle au modèle qu'on a spécifié.
-
-Il faut d'abord installer les dépendances requises :
-```properties
-npm install @mikro-orm/cli @mikro-orm/migrations
-```
-Et ajouter dans package.json ces lignes de configurations :
-```json
- "mikro-orm": {
-    "useTsNode": true,
-    "configPaths": [
-      "./src/mikro-orm.config.ts",
-      "./dist/mikro-orm.config.js"
-    ]
+  @Property({ persist: false })
+  get fullName() {
+    return `${this.firstName} ${this.lastName}`;
   }
-```
-
-
-1. Créer une nouvelle migration (comme le modèle a changé)
-    ```
-    npx mikro-orm migration:create
-    ```
-2. Migrer la base de donnée vers la dernière version de migration (Pour savoir où la base de donnée en est, MikroORM sauvegarde les données de migrations effectuées)
-    ```
-    npx mikro-orm migration:up 
-    ```
-## Création d'un *Student* : Endpoint POST
-
-### Dto : Data transfert object
-
-Pour créer un student, on a besoin de son nom et de son prénom qu'on obtiendra dans le **body** des requête post sur l'endpoint /students.
-
-Si on ouvre le controller des students, on a quasiment rien à faire :
-- Le Controller est déclaré (Décorateur *@Controller('students')*)
-- Fonction pour la méthode POST déjà implémentée :
-    ```Typescript
-    @Post()
-    create(@Body() createStudentDto: CreateStudentDto) {
-        return this.studentsService.create(createStudentDto);
-    }
-    ```
-Par contre il faut faut détailler quels données transits dans les **body** des requêtes. C'est à ça que servent les Dto.
-
-#### Configuration de l'auto validation
-1. Installer les dépendances `npm install class-validator class-transformer`
-2. Modifier le lancement de l'application dans `main.js` pour activer le ValidationPipe (L'utilitaire qui va interceptée les exceptions des validations et les transformer en erreur HTTP) sur l'application en globalité
-    ```Typescript
-    async function bootstrap() {
-        const app = await NestFactory.create(AppModule);
-        app.useGlobalPipes(new ValidationPipe());
-        await app.listen(3000);
-        }
-    bootstrap();
-    ```
-#### Déclaration d'un Dto
-On déclare dans les champs d'un Dto le format des body de création d'une entités.
-<details>
-
-Pour l'entité Student ça serait
-```Typescript
-export class CreateStudentDto {
-  lastname: string;
-  firstname: string;
 }
 ```
-</details>
 
+Cette fonctionnalité nous est utile pour calculer
+- la moyenne d'un examen (Dans l'entité Exam)
+- la moyenne d'un étudiant (Dans l'entité Student)
 
-On utilise [les décorateurs de la librairie class-validator](https://github.com/typestack/class-validator#validation-decorators) pour ajouter les contraintes qu'on veut appliquer sur les champs du body.
+Comment faire 
 
-<h3>A votre tour : </h3>
+### 1 - Ajouter des bi-directions
 
-Custom le CreateStudentDto pour que dans le body **soit présent** les 2 **string** *firstName* et *lastName*.
+Dans notre cas, il va nous falloir ajouter quelques relations bi-directionnels pour effectuer ce calcul (Càd ajouter quelques @OneToMany) 
+- Il faut pouvoir accéder depuis l'entité Ue à tous ses Exams
+- Depuis l'entité Student, il faut accéder à tous ses Exams
 
-### Service
-Maintenant qu'on sait qu'on a bien les données voulues dans le Dto, on peut s'en servir pour créer une nouvelle entité et l'enregister en base de données.
-
-
-
-On veut générer un identifiant unique pour le student de la forme *lastname***numero** (exemple : bidule1, bidule2, ect).
-Pour cela, on va lire dans la base de donnée si il existe déjà un étudiant avec cet identifiant, et si oui incrémenté le numero jusqu'à trouver un identifant valable.
-
-#### Comment intérroger la base de données ?
-Il faut utiliser un [EntityRepository](https://mikro-orm.io/docs/usage-with-nestjs#repositories) qu'on injecte dans le service. Un repository est un utilitaire une couche au dessus de l'EntityManager, il nous permettra de manipuler une entité bien précise.
-
-- L'EntityRepository expose différentes fonctions très utiles comme **findOrFail** ou bien **findAll**.
-  - **ATTENTION !** : Les requêtes à la base de données étant asynchrones, attention à bien gérer les fonctions asynchrones de MikroORM.
-  - **DOUBLE ATTENTION !!** : veiller à intercepter l'erreur levée par *findOrFail* quand elle ne trouve pas l'entité voulue. On fait un try/catch et on throw une [Exception que NestJS peut transformer en Erreur HTTP](https://docs.nestjs.com/exception-filters#built-in-http-exceptions) **NotFoundException**.
-
- 
-- Pour créer une entité on se sert de son constructeur : `new ENTITY()`
-
-Créer une entité de suffit pas à la persister en base de donnée.
-
-#### Enregistrer une entité en base de donnée
-On se sert de l'EntityManager (de MikroORM) pour persister une nouvelle entité.
-
-Pour se servir de l'EntityManger dans le service, on commence par l'injecter dans le service.
 <details>
+J'ai ajouté la bi-direction dans l'entité Student pour avoir toutes ses notes : 
 
 ```Typescript
-constructor(private em: EntityManager) {}
-```
+@OneToMany(() => Exam, (exam) => exam.student, {
+    serializer(value: Collection<Exam>) {
+      return value.getItems().map((exam) => {
+        return { average: exam.average, mark: exam.mark, ue: exam.ue.ueName };
+      });
+    },
+  })
+  exams = new Collection<Exam>(this);
+  ```
 </details>
 
-Pour enregistrer une entité il faut utiliser la fonction **persistAndFlush** de l'entityManager : 
+### 2 - Ajouter les propriétés virtuelles
+<details>
+J'ai ajouté la propriété virtuelle pour la moyenne globale d'un student
+
 ```Typescript
-await entityManager.persistAndFlush(ENTITY);
-```
-
-### GET GET PATCH
-Oui c'est possible, avec toutes les informations ci-dessus ces endpoints sont réalisables.
-
-### DELETE
-Il faut utiliser la fonction **removerAndFlush** de l'EntityManager
-```Typescript
-await this.em.removeAndFlush(ENTITY);
-```
-
-# Et voilà
-Je crois qu'on est bon
+@Property({ persist: false })
+  get globalAverage() {
+    if (this.exams.length !== 0) {
+      return (
+        this.exams
+          .getItems()
+          .map((exam) => exam.mark)
+          .reduce((partialSum, a) => partialSum + a, 0) / this.exams.length
+      );
+    }
+    return -1;
+  }
+  ```
+</details>

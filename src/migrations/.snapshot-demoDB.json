@@ -6,6 +6,34 @@
   "tables": [
     {
       "columns": {
+        "cursus_name": {
+          "name": "cursus_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        }
+      },
+      "name": "cursus",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "cursus_pkey",
+          "columnNames": [
+            "cursus_name"
+          ],
+          "composite": false,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {}
+    },
+    {
+      "columns": {
         "user_id": {
           "name": "user_id",
           "type": "varchar(255)",
@@ -32,6 +60,84 @@
           "primary": false,
           "nullable": false,
           "mappedType": "string"
+        },
+        "cursus_cursus_name": {
+          "name": "cursus_cursus_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "string"
+        }
+      },
+      "name": "cursus_responsible",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "cursus_responsible_pkey",
+          "columnNames": [
+            "user_id"
+          ],
+          "composite": false,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "cursus_responsible_cursus_cursus_name_foreign": {
+          "constraintName": "cursus_responsible_cursus_cursus_name_foreign",
+          "columnNames": [
+            "cursus_cursus_name"
+          ],
+          "localTableName": "public.cursus_responsible",
+          "referencedColumnNames": [
+            "cursus_name"
+          ],
+          "referencedTableName": "public.cursus",
+          "deleteRule": "set null",
+          "updateRule": "cascade"
+        }
+      }
+    },
+    {
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        },
+        "cursus_cursus_name": {
+          "name": "cursus_cursus_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "string"
         }
       },
       "name": "student",
@@ -48,7 +154,178 @@
         }
       ],
       "checks": [],
-      "foreignKeys": {}
+      "foreignKeys": {
+        "student_cursus_cursus_name_foreign": {
+          "constraintName": "student_cursus_cursus_name_foreign",
+          "columnNames": [
+            "cursus_cursus_name"
+          ],
+          "localTableName": "public.student",
+          "referencedColumnNames": [
+            "cursus_name"
+          ],
+          "referencedTableName": "public.cursus",
+          "deleteRule": "set null",
+          "updateRule": "cascade"
+        }
+      }
+    },
+    {
+      "columns": {
+        "ue_name": {
+          "name": "ue_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        },
+        "cursus_cursus_name": {
+          "name": "cursus_cursus_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        }
+      },
+      "name": "ue",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "ue_pkey",
+          "columnNames": [
+            "ue_name",
+            "cursus_cursus_name"
+          ],
+          "composite": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "ue_cursus_cursus_name_foreign": {
+          "constraintName": "ue_cursus_cursus_name_foreign",
+          "columnNames": [
+            "cursus_cursus_name"
+          ],
+          "localTableName": "public.ue",
+          "referencedColumnNames": [
+            "cursus_name"
+          ],
+          "referencedTableName": "public.cursus",
+          "updateRule": "cascade"
+        }
+      }
+    },
+    {
+      "columns": {
+        "cursus_cursus_name": {
+          "name": "cursus_cursus_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        },
+        "ue_ue_name": {
+          "name": "ue_ue_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        },
+        "ue_cursus_cursus_name": {
+          "name": "ue_cursus_cursus_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        },
+        "student_user_id": {
+          "name": "student_user_id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        },
+        "mark": {
+          "name": "mark",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "integer"
+        }
+      },
+      "name": "exam",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "exam_pkey",
+          "columnNames": [
+            "cursus_cursus_name",
+            "ue_ue_name",
+            "ue_cursus_cursus_name",
+            "student_user_id"
+          ],
+          "composite": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "exam_cursus_cursus_name_foreign": {
+          "constraintName": "exam_cursus_cursus_name_foreign",
+          "columnNames": [
+            "cursus_cursus_name"
+          ],
+          "localTableName": "public.exam",
+          "referencedColumnNames": [
+            "cursus_name"
+          ],
+          "referencedTableName": "public.cursus",
+          "updateRule": "cascade"
+        },
+        "exam_ue_ue_name_ue_cursus_cursus_name_foreign": {
+          "constraintName": "exam_ue_ue_name_ue_cursus_cursus_name_foreign",
+          "columnNames": [
+            "ue_ue_name",
+            "ue_cursus_cursus_name"
+          ],
+          "localTableName": "public.exam",
+          "referencedColumnNames": [
+            "ue_name",
+            "cursus_cursus_name"
+          ],
+          "referencedTableName": "public.ue",
+          "updateRule": "cascade"
+        },
+        "exam_student_user_id_foreign": {
+          "constraintName": "exam_student_user_id_foreign",
+          "columnNames": [
+            "student_user_id"
+          ],
+          "localTableName": "public.exam",
+          "referencedColumnNames": [
+            "user_id"
+          ],
+          "referencedTableName": "public.student",
+          "updateRule": "cascade"
+        }
+      }
     }
   ]
 }
