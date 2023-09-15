@@ -26,8 +26,8 @@ Il faut qu'on génère les clés API à la création des utilisateurs, en foncti
 Un peu de la même manière que pour la génération des ID (même type de boucle), on va générer une clé api unique en utilisant la fonction [crypto.randomUUID()](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID). Pour cela il faudra vérifier si la clé est utilisée ou non, donc il faut d'abord **implémenter une fonction qui renvoi true si la clé est déjà utilisée** dans l'ApiKeyService.
 
 ```Typescript
-async isApiKeyAlreadyUsed(apiKey: string) {
-    const apiKey = await this.apiKeyRepository.findOne({ apiKey: apiKey })
+async isApiKeyAlreadyUsed(key: string) {
+    const apiKey = await this.apiKeyRepository.findOne({ apiKey: key })
     
     if(apiKey === null) {
       return false;
