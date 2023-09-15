@@ -1,6 +1,7 @@
-import { Entity, ManyToOne } from '@mikro-orm/core';
+import { Entity, ManyToOne, OneToOne } from '@mikro-orm/core';
 import { Person } from '../../shared/entities/person.entity';
 import { Cursus } from '../../cursus/entities/cursus.entity';
+import { ApiKey } from '../../api-key/apiKey.entity';
 
 @Entity()
 export class CursusResponsible extends Person {
@@ -13,4 +14,12 @@ export class CursusResponsible extends Person {
     },
   })
   cursus?: Cursus;
+
+  @OneToOne(() => ApiKey, (apiKey) => apiKey.cursusResponsible, {
+    owner: true,
+    serializer(value: ApiKey) {
+      return value.apiKey;
+    },
+  })
+  apiKey: ApiKey;
 }

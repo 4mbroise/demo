@@ -13,10 +13,19 @@ import { Ue } from '../ue/entities/ue.entity';
 import { ExamsController } from './controllers/exams.controller';
 import { ExamsService } from '../exams/exams.service';
 import { Exam } from '../exams/entities/exam.entity';
+import { ApiKey } from '../api-key/apiKey.entity';
+import { ApiKeyService } from '../api-key/api-key.service';
 
 @Module({
   imports: [
-    MikroOrmModule.forFeature([Cursus, Student, CursusResponsible, Ue, Exam]),
+    MikroOrmModule.forFeature([
+      Cursus,
+      Student,
+      CursusResponsible,
+      Ue,
+      Exam,
+      ApiKey,
+    ]),
   ],
   controllers: [CursusController, UeController, ExamsController],
   providers: [
@@ -25,6 +34,7 @@ import { Exam } from '../exams/entities/exam.entity';
     CursusResponsiblesService,
     UeService,
     ExamsService,
+    ApiKeyService,
   ],
 })
 export class CursusModule {}

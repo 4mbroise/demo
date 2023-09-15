@@ -10,10 +10,19 @@ import { StudentsService } from '../students/students.service';
 import { Student } from '../students/entities/student.entity';
 import { CursusResponsible } from '../cursus-responsibles/entities/cursus-responsible.entity';
 import { CursusResponsiblesService } from '../cursus-responsibles/cursus-responsibles.service';
+import { ApiKey } from '../api-key/apiKey.entity';
+import { ApiKeyService } from '../api-key/api-key.service';
 
 @Module({
   imports: [
-    MikroOrmModule.forFeature([Exam, Cursus, Ue, Student, CursusResponsible]),
+    MikroOrmModule.forFeature([
+      Exam,
+      Cursus,
+      Ue,
+      Student,
+      CursusResponsible,
+      ApiKey,
+    ]),
   ],
   providers: [
     ExamsService,
@@ -21,6 +30,7 @@ import { CursusResponsiblesService } from '../cursus-responsibles/cursus-respons
     UeService,
     StudentsService,
     CursusResponsiblesService,
+    ApiKeyService,
   ],
 })
 export class ExamsModule {}

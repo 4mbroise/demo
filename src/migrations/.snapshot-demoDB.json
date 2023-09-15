@@ -6,6 +6,64 @@
   "tables": [
     {
       "columns": {
+        "api_key": {
+          "name": "api_key",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        },
+        "is_admin": {
+          "name": "is_admin",
+          "type": "boolean",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "false",
+          "mappedType": "boolean"
+        },
+        "is_student": {
+          "name": "is_student",
+          "type": "boolean",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "false",
+          "mappedType": "boolean"
+        },
+        "is_responsible": {
+          "name": "is_responsible",
+          "type": "boolean",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "false",
+          "mappedType": "boolean"
+        }
+      },
+      "name": "api_key",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "api_key_pkey",
+          "columnNames": [
+            "api_key"
+          ],
+          "composite": false,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {}
+    },
+    {
+      "columns": {
         "cursus_name": {
           "name": "cursus_name",
           "type": "varchar(255)",
@@ -69,11 +127,29 @@
           "primary": false,
           "nullable": true,
           "mappedType": "string"
+        },
+        "api_key_api_key": {
+          "name": "api_key_api_key",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
         }
       },
       "name": "cursus_responsible",
       "schema": "public",
       "indexes": [
+        {
+          "columnNames": [
+            "api_key_api_key"
+          ],
+          "composite": false,
+          "keyName": "cursus_responsible_api_key_api_key_unique",
+          "primary": false,
+          "unique": true
+        },
         {
           "keyName": "cursus_responsible_pkey",
           "columnNames": [
@@ -98,8 +174,66 @@
           "referencedTableName": "public.cursus",
           "deleteRule": "set null",
           "updateRule": "cascade"
+        },
+        "cursus_responsible_api_key_api_key_foreign": {
+          "constraintName": "cursus_responsible_api_key_api_key_foreign",
+          "columnNames": [
+            "api_key_api_key"
+          ],
+          "localTableName": "public.cursus_responsible",
+          "referencedColumnNames": [
+            "api_key"
+          ],
+          "referencedTableName": "public.api_key",
+          "updateRule": "cascade"
         }
       }
+    },
+    {
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
+        }
+      },
+      "name": "person",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "person_pkey",
+          "columnNames": [
+            "user_id"
+          ],
+          "composite": false,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {}
     },
     {
       "columns": {
@@ -138,11 +272,29 @@
           "primary": false,
           "nullable": true,
           "mappedType": "string"
+        },
+        "api_key_api_key": {
+          "name": "api_key_api_key",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "string"
         }
       },
       "name": "student",
       "schema": "public",
       "indexes": [
+        {
+          "columnNames": [
+            "api_key_api_key"
+          ],
+          "composite": false,
+          "keyName": "student_api_key_api_key_unique",
+          "primary": false,
+          "unique": true
+        },
         {
           "keyName": "student_pkey",
           "columnNames": [
@@ -166,6 +318,18 @@
           ],
           "referencedTableName": "public.cursus",
           "deleteRule": "set null",
+          "updateRule": "cascade"
+        },
+        "student_api_key_api_key_foreign": {
+          "constraintName": "student_api_key_api_key_foreign",
+          "columnNames": [
+            "api_key_api_key"
+          ],
+          "localTableName": "public.student",
+          "referencedColumnNames": [
+            "api_key"
+          ],
+          "referencedTableName": "public.api_key",
           "updateRule": "cascade"
         }
       }

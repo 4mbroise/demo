@@ -1,7 +1,8 @@
-import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
+import { Entity, OneToOne, PrimaryKey, Property } from '@mikro-orm/core';
+import { ApiKey } from '../../api-key/apiKey.entity';
 
-@Entity({ abstract: true })
-export class Person {
+@Entity()
+export abstract class Person {
   @PrimaryKey()
   userID!: string;
 

@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 import { Student } from './entities/student.entity';
 import { InjectRepository } from '@mikro-orm/nestjs';
+import { ApiKey } from '../api-key/apiKey.entity';
+import { ApiKeyService } from '../api-key/api-key.service';
 
 @Injectable()
 export class StudentsService {
@@ -11,6 +13,8 @@ export class StudentsService {
     private em: EntityManager,
     @InjectRepository(Student)
     private readonly studentRepository: EntityRepository<Student>,
+    @Inject(forwardRef(() => ApiKeyService))
+    private readonly apiKeyService: ApiKeyService,
   ) {}
 
   async create(createStudentDto: CreateStudentDto) {
@@ -33,6 +37,20 @@ export class StudentsService {
     }
 
     student.userID = student.lastName + numero;
+
+    const apiKey = new ApiKey();
+
+    let uuid = crypto.randomUUID();
+    while (await this.apiKeyService.isApiKeyAlreadyUsed(uuid)) {
+      console.log('looping ?');
+      uuid = crypto.randomUUID();
+    }
+    apiKey.apiKey = uuid;
+    apiKey.isAdmin = false;
+    apiKey.isResponsible = false;
+    apiKey.isStudent = true;
+    apiKey.student = student;
+    apiKey.cursusResponsible = null;
 
     await this.em.persistAndFlush(student);
 

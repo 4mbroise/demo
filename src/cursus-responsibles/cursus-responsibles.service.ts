@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateCursusResponsibleDto } from './dto/create-cursus-responsible.dto';
 import { UpdateCursusResponsibleDto } from './dto/update-cursus-responsible.dto';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { CursusResponsible } from './entities/cursus-responsible.entity';
+import { ApiKey } from '../api-key/apiKey.entity';
+import { ApiKeyService } from '../api-key/api-key.service';
 
 @Injectable()
 export class CursusResponsiblesService {
@@ -11,6 +13,7 @@ export class CursusResponsiblesService {
     private em: EntityManager,
     @InjectRepository(CursusResponsible)
     private readonly cursusResponsibleRepository: EntityRepository<CursusResponsible>,
+    private readonly apiKeyService: ApiKeyService,
   ) {}
 
   async create(createCursusResponsibleDto: CreateCursusResponsibleDto) {
@@ -33,6 +36,20 @@ export class CursusResponsiblesService {
     }
 
     cursusResponsible.userID = cursusResponsible.lastName + numero;
+
+    const apiKey = new ApiKey();
+
+    let uuid = crypto.randomUUID();
+    while (await this.apiKeyService.isApiKeyAlreadyUsed(uuid)) {
+      console.log('looping ?');
+      uuid = crypto.randomUUID();
+    }
+    apiKey.apiKey = uuid;
+    apiKey.isAdmin = false;
+    apiKey.isResponsible = true;
+    apiKey.isStudent = false;
+    apiKey.student = null;
+    apiKey.cursusResponsible = cursusResponsible;
 
     await this.em.persistAndFlush(cursusResponsible);
 

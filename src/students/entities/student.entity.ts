@@ -3,11 +3,13 @@ import {
   Entity,
   ManyToOne,
   OneToMany,
+  OneToOne,
   Property,
 } from '@mikro-orm/core';
 import { Person } from '../../shared/entities/person.entity';
 import { Cursus } from '../../cursus/entities/cursus.entity';
 import { Exam } from '../../exams/entities/exam.entity';
+import { ApiKey } from '../../api-key/apiKey.entity';
 
 @Entity()
 export class Student extends Person {
@@ -42,4 +44,12 @@ export class Student extends Person {
     }
     return -1;
   }
+
+  @OneToOne(() => ApiKey, (apiKey) => apiKey.student, {
+    owner: true,
+    serializer(value: ApiKey) {
+      return value.apiKey;
+    },
+  })
+  apiKey: ApiKey;
 }
