@@ -84,21 +84,28 @@ export class ApiKeyService implements OnModuleInit { ... }
 
 On ajoute la fonction de l'interface à l'ApiKeyServicec qui sera déclenchée à l'instanciation de l'ApiKeyModule. Dans cette fonction on va créer un Student factice auquel on assigne le role Admin et une clé API 
 ```Typescript
-async onModuleInit() {
-    const adminAccount = await this.userRepository.findOne({
-      username: 'admin',
-    });
-    if (null === adminAccount) {
-      const admin = await this.create({
-        username: 'admin',
-        envrionments: [],
-        canDeactivateFilter: true,
-        isAdmin: true,
-        favouriteEnvironment: null,
+@UseRequestContext()
+  async onModuleInit() {
+    try {
+      const student = await this.studentsService.findOne('admin');
+    } catch (error) {
+      const stud = await this.studentsService.create({
+        firstName: 'admin',
+        lastName: 'admin',
       });
-      if (process.env.NODE_ENV !== 'test') {
-        console.log('Admin API KEY : ', admin.apiKey.apiKey);
+
+      let uuid = crypto.randomUUID();
+      while (await this.isApiKeyAlreadyUsed(uuid)) {
+        console.log('looping ?');
+        uuid = crypto.randomUUID();
       }
+      const apiKey = new ApiKey();
+      apiKey.apiKey = uuid;
+      apiKey.isAdmin = true;
+      stud.apiKey = apiKey;
+      stud.userID = 'admin';
+      await this.em.persistAndFlush(stud);
+      console.log('Admin API Key : ' + uuid);
     }
   }
 ```
